@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./deploy/Dockerfile
+      target: prod
+    image: friendship:${FRIENDSHIP_VERSION:-latest}
+    restart: always
+    env_file:
+    - .env
+    environment:
+      FRIENDSHIP_HOST: 0.0.0.0
+      FRIENDSHIP_DB_FILE: /db_data/db.sqlite3
+    volumes:
+    - friendship-db-data:/db_data/
+
+  taskiq-worker:
+    <<: *main_app
+    labels: []
+    command:
+    - taskiq
+    - worker
+    - friendship.tkq:broker
+
+  migrator:
+    image: friendship:${FRIENDSHIP_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      FRIENDSHIP_DB_FILE: /db_data/db.sqlite3
+    volumes:
+    - friendship-db-data:/db_data/
+
+
+
+volumes:
+  friendship-db-data:
+    name: friendship-db-data
