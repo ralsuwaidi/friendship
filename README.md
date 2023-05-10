@@ -1,5 +1,6 @@
 # friendship
 
+
 This project was generated using fastapi_template.
 
 ## Poetry
